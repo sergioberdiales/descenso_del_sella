@@ -11,5 +11,30 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Análisis de resultados históricos del Descenso Internacional del Sella.
 
-Actualmente la información, exceptuando la de los vencedores históricos y la de los últimos años (pdfs con todos los resultados generados por la organización) no es de fácil acceso. Así que la mayor parte del trabajo de este proyecto será buscar y tratar los datos para poder utilizarlos. Gran parte de estos están incluidos en las memorias anuales de la federación española de piragüismo. Estas memorias están en formato pdf pero las tablas con los resultados son imágenes. 
+Actualmente la información, exceptuando la de los vencedores históricos y la de los últimos años (pdfs con todos los resultados generados por la organización) no es de fácil acceso. Así que la mayor parte del trabajo de este proyecto será buscar y tratar los datos para poder utilizarlos. Gran parte de éstos están incluidos en las memorias anuales de la federación española de piragüismo. Estas memorias están en formato pdf pero las tablas con los resultados son imágenes. 
 
+```{r }
+library(tidyverse)
+library(rvest)
+```
+
+En la wikipedia hay una tabla con los vencedores en categoría K2 de la prueba: https://es.wikipedia.org/wiki/Descenso_Internacional_del_Sella
+
+Utilizo las funciones del paquete rvest para importar la información de la wikipedia
+
+```{r }
+
+# Importo toda la entrada de la wikipedia
+descenso_wiki <- read_html('https://es.wikipedia.org/wiki/Descenso_Internacional_del_Sella')
+
+# Localizo las tablas y selecciono la tercera, que es donde están registrados todos los vencedores con sus respectivos tiempos. 
+# Asigno el data frame resultante a 'vencedores'.
+vencedores <- html_nodes(descenso_wiki, "table") %>% .[[3]] %>% html_table(header = TRUE)
+
+```
+
+Echo un vistazo al formato de la tabla
+```{r }
+head(vencedores)
+```
+Tenemos que arreglar algún detalle de la tabla
