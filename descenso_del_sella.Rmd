@@ -13,28 +13,61 @@ Análisis de resultados históricos del Descenso Internacional del Sella.
 
 Actualmente la información, exceptuando la de los vencedores históricos y la de los últimos años (pdfs con todos los resultados generados por la organización) no es de fácil acceso. Así que la mayor parte del trabajo de este proyecto será buscar y tratar los datos para poder utilizarlos. Gran parte de éstos están incluidos en las memorias anuales de la federación española de piragüismo. Estas memorias están en formato pdf pero las tablas con los resultados son imágenes. 
 
-```{r }
+Cargo los paquetes que voy a necesitar para el análisis:
+
+```{r message = FALSE, warning = FALSE}
 library(tidyverse)
 library(rvest)
 ```
 
 En la wikipedia hay una tabla con los vencedores en categoría K2 de la prueba: https://es.wikipedia.org/wiki/Descenso_Internacional_del_Sella
 
-Utilizo las funciones del paquete rvest para importar la información de la wikipedia
-
+Utilizo las funciones del paquete rvest para importar la información de la wikipedia.
+Importo toda la entrada de la wikipedia:
+```{r }
+descenso_wiki <- read_html('https://es.wikipedia.org/wiki/Descenso_Internacional_del_Sella')
+```
+Localizo las tablas y selecciono la tercera, que es donde están registrados todos los vencedores con sus respectivos tiempos. 
+Asigno el data frame resultante a 'vencedores':
 ```{r }
 
-# Importo toda la entrada de la wikipedia
-descenso_wiki <- read_html('https://es.wikipedia.org/wiki/Descenso_Internacional_del_Sella')
-
-# Localizo las tablas y selecciono la tercera, que es donde están registrados todos los vencedores con sus respectivos tiempos. 
-# Asigno el data frame resultante a 'vencedores'.
 vencedores <- html_nodes(descenso_wiki, "table") %>% .[[3]] %>% html_table(header = TRUE)
 
 ```
 
-Echo un vistazo al formato de la tabla
+Echo un vistazo al formato de la tabla:
 ```{r }
 head(vencedores)
 ```
-Tenemos que arreglar algún detalle de la tabla
+Tenemos que arreglar algún detalle de la tabla. Para empezar el nombre de las variables se encuentra en la primera fila de datos, apareciendo como nombres de las columnas el tipo de competición del inicio de la prueba: 'EXCURSIONES'. Esto último ocurre varias veces a lo largo de la tabla. Cuando cambia el tipo de competición aparece antes una fila con el tipo repetido en cada columna y a continuación otra vez el nombre de las columnas.
+
+Primero, cambio el nombre de las columnas:
+``` {r }
+colnames(vencedores) <- vencedores[1,]
+```
+Y segundo, elimino todas las filas que no recojan los resultados de la prueba.
+Para ello primero cambio el formato de la variable 'Año' a 'numeric'.
+```{r warning = FALSE}
+
+vencedores$Año <- as.numeric(vencedores$Año)
+```
+
+Al convertir a formato numérico la variable 'Año' R convierte a NA todo lo que no puede convertir en un número. Esto nos puede servir para identificar todas las filas que no nos interesan, quedándonos únicamente con las filas que en la variable 'Año' presentan un número.
+```{r }
+vencedores <- vencedores %>% filter(!is.na(Año)) 
+```
+Para recuperar la información del tipo de competición a lo largo de la historia del Descenso creo una nueva variable que la recoja.
+Utilizo la función 'cut' para crear un vector llamado 'Tipo' con los tipos de competición para cada rango de años:
+```{r }
+Tipo <- cut(vencedores$Año, breaks = c(1929, 1931, 1934, 1950, Inf), labels = c("Excursión", "Provincial", "Nacional", "Internacional"))
+```
+Convierto el objeto creado en un data frame y lo uno a la tabla 'vencedores'
+```{r }
+Tipo <- as.data.frame(Tipo)
+
+vencedores <- bind_cols(vencedores, Tipo)
+
+```
+
+
+
