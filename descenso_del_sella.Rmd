@@ -1,0 +1,15 @@
+---
+title: "descenso_del_sella"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Análisis Descenso del Sella
+
+Análisis de resultados históricos del Descenso Internacional del Sella.
+
+Actualmente la información, exceptuando la de los vencedores históricos y la de los últimos años (pdfs con todos los resultados generados por la organización) no es de fácil acceso. Así que la mayor parte del trabajo de este proyecto será buscar y tratar los datos para poder utilizarlos. Gran parte de estos están incluidos en las memorias anuales de la federación española de piragüismo. Estas memorias están en formato pdf pero las tablas con los resultados son imágenes. 
+
