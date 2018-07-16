@@ -68,6 +68,12 @@ Tipo <- as.data.frame(Tipo)
 vencedores <- bind_cols(vencedores, Tipo)
 
 ```
-
-
+La variable 'Municipio' a partir de  que la competición se convierte en internacional no recoge el municipio origen de los participantes sino el país.
+```{r }
+summary(as.factor(vencedores$Municipio))
+```
+Arreglo esto creando una nueva variable 'País' donde sólo quede registrado el país
+```{r }
+vencedores_prueba <- vencedores %>% mutate(pais = ifelse(Año < 1951, "España", Municipio))
+```
 

@@ -173,6 +173,16 @@ library(rvest)</code></pre>
 <pre class="r"><code>Tipo &lt;- as.data.frame(Tipo)
 
 vencedores &lt;- bind_cols(vencedores, Tipo)</code></pre>
+<p>La variable ‘Municipio’ a partir de que la competición se convierte en internacional no recoge el municipio origen de los participantes sino el país.</p>
+<pre class="r"><code>summary(as.factor(vencedores$Municipio))</code></pre>
+<pre><code>##    Alemania   Australia     Bélgica   Cantabria   Dinamarca      España 
+##           1           1           3           1           6          47 
+##       Gijón    Infiesto  Inglaterra      Italia    Portugal Ribadesella 
+##           5           2           2           1           1           5 
+##   Sudáfrica      Suecia       Suiza 
+##           2           2           1</code></pre>
+<p>Arreglo esto creando una nueva variable ‘País’ donde sólo quede registrado el país</p>
+<pre class="r"><code>vencedores_prueba &lt;- vencedores %&gt;% mutate(pais = ifelse(Año &lt; 1951, &quot;España&quot;, Municipio))</code></pre>
 </div>
 
 
