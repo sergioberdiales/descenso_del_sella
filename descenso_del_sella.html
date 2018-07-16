@@ -135,10 +135,10 @@ library(rvest)</code></pre>
 <p>En la wikipedia hay una tabla con los vencedores en categoría K2 de la prueba: <a href="https://es.wikipedia.org/wiki/Descenso_Internacional_del_Sella" class="uri">https://es.wikipedia.org/wiki/Descenso_Internacional_del_Sella</a></p>
 <p>Utilizo las funciones del paquete rvest para importar la información de la wikipedia. Importo toda la entrada de la wikipedia:</p>
 <pre class="r"><code>descenso_wiki &lt;- read_html('https://es.wikipedia.org/wiki/Descenso_Internacional_del_Sella')</code></pre>
-<p>Localizo las tablas y selecciono la tercera, que es donde están registrados todos los vencedores con sus respectivos tiempos. Asigno el data frame resultante a ‘vencedores’:</p>
-<pre class="r"><code>vencedores &lt;- html_nodes(descenso_wiki, &quot;table&quot;) %&gt;% .[[3]] %&gt;% html_table(header = TRUE)</code></pre>
+<p>Localizo las tablas y selecciono la tercera, que es donde están registrados todos los vencedores con sus respectivos tiempos. Asigno el data frame resultante a ‘vencedores_0’:</p>
+<pre class="r"><code>vencedores_0 &lt;- html_nodes(descenso_wiki, &quot;table&quot;) %&gt;% .[[3]] %&gt;% html_table(header = TRUE)</code></pre>
 <p>Echo un vistazo al formato de la tabla:</p>
-<pre class="r"><code>head(vencedores)</code></pre>
+<pre class="r"><code>head(vencedores_0)</code></pre>
 <pre><code>##              EXCURSIONES            EXCURSIONES
 ## 1                Edición                    Año
 ## 2                      I                   1930
@@ -161,28 +161,29 @@ library(rvest)</code></pre>
 ## 5                 Tiempo
 ## 6                1:53:00</code></pre>
 <p>Tenemos que arreglar algún detalle de la tabla. Para empezar el nombre de las variables se encuentra en la primera fila de datos, apareciendo como nombres de las columnas el tipo de competición del inicio de la prueba: ‘EXCURSIONES’. Esto último ocurre varias veces a lo largo de la tabla. Cuando cambia el tipo de competición aparece antes una fila con el tipo repetido en cada columna y a continuación otra vez el nombre de las columnas.</p>
-<p>Primero, cambio el nombre de las columnas:</p>
-<pre class="r"><code>colnames(vencedores) &lt;- vencedores[1,]</code></pre>
+<p>Primero, cambio el nombre de las variables, eliminando tildes, la ‘ñ’ y las minúsculas:</p>
+<pre class="r"><code>colnames(vencedores_0) &lt;- c(&quot;edicion&quot;, &quot;ano&quot;, &quot;ganadores&quot;, &quot;municipio&quot;, &quot;tiempo&quot;)</code></pre>
 <p>Y segundo, elimino todas las filas que no recojan los resultados de la prueba. Para ello primero cambio el formato de la variable ‘Año’ a ‘numeric’.</p>
-<pre class="r"><code>vencedores$Año &lt;- as.numeric(vencedores$Año)</code></pre>
-<p>Al convertir a formato numérico la variable ‘Año’ R convierte a NA todo lo que no puede convertir en un número. Esto nos puede servir para identificar todas las filas que no nos interesan, quedándonos únicamente con las filas que en la variable ‘Año’ presentan un número.</p>
-<pre class="r"><code>vencedores &lt;- vencedores %&gt;% filter(!is.na(Año)) </code></pre>
+<pre class="r"><code>vencedores_0$ano &lt;- as.numeric(vencedores_0$ano)</code></pre>
+<p>Al convertir a formato numérico la variable ‘ano’ R convierte a NA todo lo que no puede convertir en un número. Esto nos puede servir para identificar todas las filas que no nos interesan, quedándonos únicamente con las filas que en la variable ‘Año’ presentan un número.</p>
+<pre class="r"><code>vencedores_0 &lt;- vencedores_0 %&gt;% filter(!is.na(ano)) </code></pre>
 <p>Para recuperar la información del tipo de competición a lo largo de la historia del Descenso creo una nueva variable que la recoja. Utilizo la función ‘cut’ para crear un vector llamado ‘Tipo’ con los tipos de competición para cada rango de años:</p>
-<pre class="r"><code>Tipo &lt;- cut(vencedores$Año, breaks = c(1929, 1931, 1934, 1950, Inf), labels = c(&quot;Excursión&quot;, &quot;Provincial&quot;, &quot;Nacional&quot;, &quot;Internacional&quot;))</code></pre>
-<p>Convierto el objeto creado en un data frame y lo uno a la tabla ‘vencedores’</p>
-<pre class="r"><code>Tipo &lt;- as.data.frame(Tipo)
+<pre class="r"><code>tipo &lt;- cut(vencedores_0$ano, breaks = c(1929, 1931, 1934, 1950, Inf), labels = c(&quot;Excursión&quot;, &quot;Provincial&quot;, &quot;Nacional&quot;, &quot;Internacional&quot;))</code></pre>
+<p>Convierto el objeto creado en un data frame y lo uno a la tabla ‘vencedores_0’</p>
+<pre class="r"><code>tipo &lt;- as.data.frame(tipo)
 
-vencedores &lt;- bind_cols(vencedores, Tipo)</code></pre>
+vencedores_1 &lt;- bind_cols(vencedores_0, tipo)</code></pre>
 <p>La variable ‘Municipio’ a partir de que la competición se convierte en internacional no recoge el municipio origen de los participantes sino el país.</p>
-<pre class="r"><code>summary(as.factor(vencedores$Municipio))</code></pre>
+<pre class="r"><code>summary(as.factor(vencedores_1$municipio))</code></pre>
 <pre><code>##    Alemania   Australia     Bélgica   Cantabria   Dinamarca      España 
 ##           1           1           3           1           6          47 
 ##       Gijón    Infiesto  Inglaterra      Italia    Portugal Ribadesella 
 ##           5           2           2           1           1           5 
 ##   Sudáfrica      Suecia       Suiza 
 ##           2           2           1</code></pre>
-<p>Arreglo esto creando una nueva variable ‘País’ donde sólo quede registrado el país</p>
-<pre class="r"><code>vencedores_prueba &lt;- vencedores %&gt;% mutate(pais = ifelse(Año &lt; 1951, &quot;España&quot;, Municipio))</code></pre>
+<p>Arreglo esto creando una nueva variable ‘pais’ donde sólo quede registrado el país y elimino la variable ‘municipio’</p>
+<pre class="r"><code>vencedores_1 &lt;- vencedores_1 %&gt;% mutate(pais = ifelse(ano &lt; 1951, &quot;España&quot;, municipio))
+vencedores_1$municipio &lt;- NULL</code></pre>
 </div>
 
 

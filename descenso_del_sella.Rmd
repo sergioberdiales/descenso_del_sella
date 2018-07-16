@@ -28,52 +28,53 @@ Importo toda la entrada de la wikipedia:
 descenso_wiki <- read_html('https://es.wikipedia.org/wiki/Descenso_Internacional_del_Sella')
 ```
 Localizo las tablas y selecciono la tercera, que es donde están registrados todos los vencedores con sus respectivos tiempos. 
-Asigno el data frame resultante a 'vencedores':
+Asigno el data frame resultante a 'vencedores_0':
 ```{r }
 
-vencedores <- html_nodes(descenso_wiki, "table") %>% .[[3]] %>% html_table(header = TRUE)
+vencedores_0 <- html_nodes(descenso_wiki, "table") %>% .[[3]] %>% html_table(header = TRUE)
 
 ```
 
 Echo un vistazo al formato de la tabla:
 ```{r }
-head(vencedores)
+head(vencedores_0)
 ```
 Tenemos que arreglar algún detalle de la tabla. Para empezar el nombre de las variables se encuentra en la primera fila de datos, apareciendo como nombres de las columnas el tipo de competición del inicio de la prueba: 'EXCURSIONES'. Esto último ocurre varias veces a lo largo de la tabla. Cuando cambia el tipo de competición aparece antes una fila con el tipo repetido en cada columna y a continuación otra vez el nombre de las columnas.
 
-Primero, cambio el nombre de las columnas:
+Primero, cambio el nombre de las variables, eliminando tildes, la 'ñ' y las minúsculas:
 ``` {r }
-colnames(vencedores) <- vencedores[1,]
+colnames(vencedores_0) <- c("edicion", "ano", "ganadores", "municipio", "tiempo")
 ```
 Y segundo, elimino todas las filas que no recojan los resultados de la prueba.
 Para ello primero cambio el formato de la variable 'Año' a 'numeric'.
 ```{r warning = FALSE}
 
-vencedores$Año <- as.numeric(vencedores$Año)
+vencedores_0$ano <- as.numeric(vencedores_0$ano)
 ```
 
-Al convertir a formato numérico la variable 'Año' R convierte a NA todo lo que no puede convertir en un número. Esto nos puede servir para identificar todas las filas que no nos interesan, quedándonos únicamente con las filas que en la variable 'Año' presentan un número.
+Al convertir a formato numérico la variable 'ano' R convierte a NA todo lo que no puede convertir en un número. Esto nos puede servir para identificar todas las filas que no nos interesan, quedándonos únicamente con las filas que en la variable 'Año' presentan un número.
 ```{r }
-vencedores <- vencedores %>% filter(!is.na(Año)) 
+vencedores_0 <- vencedores_0 %>% filter(!is.na(ano)) 
 ```
 Para recuperar la información del tipo de competición a lo largo de la historia del Descenso creo una nueva variable que la recoja.
 Utilizo la función 'cut' para crear un vector llamado 'Tipo' con los tipos de competición para cada rango de años:
 ```{r }
-Tipo <- cut(vencedores$Año, breaks = c(1929, 1931, 1934, 1950, Inf), labels = c("Excursión", "Provincial", "Nacional", "Internacional"))
+tipo <- cut(vencedores_0$ano, breaks = c(1929, 1931, 1934, 1950, Inf), labels = c("Excursión", "Provincial", "Nacional", "Internacional"))
 ```
-Convierto el objeto creado en un data frame y lo uno a la tabla 'vencedores'
+Convierto el objeto creado en un data frame y lo uno a la tabla 'vencedores_0'
 ```{r }
-Tipo <- as.data.frame(Tipo)
+tipo <- as.data.frame(tipo)
 
-vencedores <- bind_cols(vencedores, Tipo)
+vencedores_1 <- bind_cols(vencedores_0, tipo)
 
 ```
 La variable 'Municipio' a partir de  que la competición se convierte en internacional no recoge el municipio origen de los participantes sino el país.
 ```{r }
-summary(as.factor(vencedores$Municipio))
+summary(as.factor(vencedores_1$municipio))
 ```
-Arreglo esto creando una nueva variable 'País' donde sólo quede registrado el país
+Arreglo esto creando una nueva variable 'pais' donde sólo quede registrado el país y elimino la variable 'municipio'
 ```{r }
-vencedores_prueba <- vencedores %>% mutate(pais = ifelse(Año < 1951, "España", Municipio))
+vencedores_1 <- vencedores_1 %>% mutate(pais = ifelse(ano < 1951, "España", municipio))
+vencedores_1$municipio <- NULL
 ```
 
