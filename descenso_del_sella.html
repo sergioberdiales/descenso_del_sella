@@ -134,7 +134,9 @@ $(document).ready(function () {
 library(rvest)</code></pre>
 <p>En la wikipedia hay una tabla con los vencedores en categoría K2 de la prueba: <a href="https://es.wikipedia.org/wiki/Descenso_Internacional_del_Sella" class="uri">https://es.wikipedia.org/wiki/Descenso_Internacional_del_Sella</a></p>
 <p>Utilizo las funciones del paquete rvest para importar la información de la wikipedia. Importo toda la entrada de la wikipedia:</p>
-<pre class="r"><code>descenso_wiki &lt;- read_html('https://es.wikipedia.org/wiki/Descenso_Internacional_del_Sella')</code></pre>
+<pre class="r"><code>descenso_wiki &lt;- read_html('https://es.wikipedia.org/wiki/Descenso_Internacional_del_Sella')
+# save(descenso_wiki, file = &quot;descenso_wiki.xml&quot;)
+# load(file = &quot;descenso_wiki.xml&quot;)</code></pre>
 <p>Localizo las tablas y selecciono la tercera, que es donde están registrados todos los vencedores con sus respectivos tiempos. Asigno el data frame resultante a ‘vencedores_0’:</p>
 <pre class="r"><code>vencedores_0 &lt;- html_nodes(descenso_wiki, &quot;table&quot;) %&gt;% .[[3]] %&gt;% html_table(header = TRUE)</code></pre>
 <p>Echo un vistazo al formato de la tabla:</p>

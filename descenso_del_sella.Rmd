@@ -18,6 +18,7 @@ Cargo los paquetes que voy a necesitar para el análisis:
 ```{r message = FALSE, warning = FALSE}
 library(tidyverse)
 library(rvest)
+library(lubridate)
 ```
 
 En la wikipedia hay una tabla con los vencedores en categoría K2 de la prueba: https://es.wikipedia.org/wiki/Descenso_Internacional_del_Sella
@@ -26,11 +27,12 @@ Utilizo las funciones del paquete rvest para importar la información de la wiki
 Importo toda la entrada de la wikipedia:
 ```{r }
 descenso_wiki <- read_html('https://es.wikipedia.org/wiki/Descenso_Internacional_del_Sella')
+# save(descenso_wiki, file = "descenso_wiki.Rdata")
+# load(file = "descenso_wiki.Rdata")
 ```
 Localizo las tablas y selecciono la tercera, que es donde están registrados todos los vencedores con sus respectivos tiempos. 
 Asigno el data frame resultante a 'vencedores_0':
 ```{r }
-
 vencedores_0 <- html_nodes(descenso_wiki, "table") %>% .[[3]] %>% html_table(header = TRUE)
 
 ```
@@ -77,4 +79,24 @@ Arreglo esto creando una nueva variable 'pais' donde sólo quede registrado el p
 vencedores_1 <- vencedores_1 %>% mutate(pais = ifelse(ano < 1951, "España", municipio))
 vencedores_1$municipio <- NULL
 ```
+La variable "tiempo" recoge el tiempo empleado por cada ganador en horas, minutos y segundos. Pero antes de poder utilizar esta información hay que realizar alguna modificación a su formato.
 
+Primero, en la tabla de la wikipedia el autor ha incluido un símbolo "®" a la derecha de los tiempos que supusieron un récord en su momento. Eliminamos este símbolo,
+```{r }
+vencedores_1$tiempo <- str_replace(vencedores_1$tiempo, "®", "" )
+```
+Los tiempos de los dos primeros años están en otro formato. Sustituimos sus valores por los correspondientes en h:mm:ss
+```{r }
+vencedores_1$tiempo[[1]] <- "7:00:00"
+vencedores_1$tiempo[[2]] <- "12:00:00"
+```
+Además hay algún error en el formato del resto de tiempos, en alguna ocasión los ":" son sustituidos por "-" o ".". Lo solucionamos sustituyendo en esta columna todos los "-" y "." por ":".
+```{r }
+vencedores_1$tiempo <- str_replace(vencedores_1$tiempo, "-", ":" )
+vencedores_1$tiempo <- str_replace(vencedores_1$tiempo, "\\.", ":" )
+vencedores_2 <- vencedores_1
+```
+Finalmente convertimos la variable de "character" formato "hora" con la función "hms" del paquete "lubridate"
+```{r warning = FALSE}
+vencedores_2$tiempo <- hms(vencedores_2$tiempo)
+```
