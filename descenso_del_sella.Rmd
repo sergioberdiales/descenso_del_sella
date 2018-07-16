@@ -90,6 +90,10 @@ Los tiempos de los dos primeros años están en otro formato. Sustituimos sus va
 vencedores_1$tiempo[[1]] <- "7:00:00"
 vencedores_1$tiempo[[2]] <- "12:00:00"
 ```
+Y falta el tiempo final de 2017. Lo añadimos
+```{r }
+vencedores_1$tiempo[[80]] <- "1:07:13"
+```
 Además hay algún error en el formato del resto de tiempos, en alguna ocasión los ":" son sustituidos por "-" o ".". Lo solucionamos sustituyendo en esta columna todos los "-" y "." por ":".
 ```{r }
 vencedores_1$tiempo <- str_replace(vencedores_1$tiempo, "-", ":" )
@@ -100,3 +104,22 @@ Finalmente convertimos la variable de "character" formato "hora" con la función
 ```{r warning = FALSE}
 vencedores_2$tiempo <- hms(vencedores_2$tiempo)
 ```
+
+Vemos gráficamente la evolución de los tiempos desde el principio de la competición
+```{r fig.width = 10}
+vencedores_2$tiempo <- as.duration(vencedores_2$tiempo)
+vencedores_3 <- vencedores_2 %>% filter(tipo != "Excursión")
+vencedores_4 <- vencedores_3 %>% mutate(fecha = paste(ano, "-", "08", "-", "01"))
+vencedores_4$fecha <- ymd(vencedores_4$fecha)
+ggplot(data = vencedores_4, aes(x = ano, y = as.numeric(tiempo), color = tipo)) + geom_line() +
+  labs(title = "Evolución tiempos vencedores K2", y = "Tiempos vencedores K2",  x = "Año") +
+  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size = 7)) +
+  scale_x_continuous(breaks = vencedores_4$ano) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  theme(legend.position = c(0.9, 0.8))
+
+ # Otra posibilidad: facet_wrap(~tipo, ncol = 1, scales = "free_x")
+
+```
+
+
