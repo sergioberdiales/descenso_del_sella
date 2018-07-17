@@ -7,11 +7,22 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Análisis Descenso del Sella
+# Análisis Descenso del Sella
 
 Análisis de resultados históricos del Descenso Internacional del Sella.
 
-Actualmente la información, exceptuando la de los vencedores históricos y la de los últimos años (pdfs con todos los resultados generados por la organización) no es de fácil acceso. Así que la mayor parte del trabajo de este proyecto será buscar y tratar los datos para poder utilizarlos. Gran parte de éstos están incluidos en las memorias anuales de la federación española de piragüismo. Estas memorias están en formato pdf pero las tablas con los resultados son imágenes. 
+### Índice
+
+### 1.Obtención de la información.
+#### 1.1 Listado de vencedores y tiempos histórico (wikipedia).
+#### 1.2 Extracción resultados última década de todos los participantes (pdfs).
+#### 1.3 Extracción resultados 1970-2000 (pdfs imágenes).
+#### 1.4 Confección tabla única con toda la información obtenida.
+
+### 2.Exploración de datos inicial.
+
+#### 1.Obtención de la información.
+##### 1.1 Listado de vencedores y tiempos histórico (wikipedia).
 
 Cargo los paquetes que voy a necesitar para el análisis:
 
@@ -19,6 +30,7 @@ Cargo los paquetes que voy a necesitar para el análisis:
 library(tidyverse)
 library(rvest)
 library(lubridate)
+library(tabulizer)
 ```
 
 En la wikipedia hay una tabla con los vencedores en categoría K2 de la prueba: https://es.wikipedia.org/wiki/Descenso_Internacional_del_Sella
@@ -105,7 +117,7 @@ Finalmente convertimos la variable de "character" formato "hora" con la función
 vencedores_2$tiempo <- hms(vencedores_2$tiempo)
 ```
 
-Vemos gráficamente la evolución de los tiempos desde el principio de la competición
+Probamos a hacer un primer gráfico. 
 ```{r fig.width = 10}
 vencedores_2$tiempo <- as.duration(vencedores_2$tiempo)
 vencedores_3 <- vencedores_2 %>% filter(tipo != "Excursión")
@@ -122,4 +134,4 @@ ggplot(data = vencedores_4, aes(x = ano, y = as.numeric(tiempo), color = tipo)) 
 
 ```
 
-
+##### 1.2 Extracción resultados última década de todos los participantes (pdfs).
