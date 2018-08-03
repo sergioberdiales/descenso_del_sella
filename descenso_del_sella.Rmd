@@ -21,6 +21,8 @@ Análisis de resultados históricos del Descenso Internacional del Sella.
 
 ### 2.Exploración de datos inicial.
 
+
+
 #### 1.Obtención de la información.
 ##### 1.1 Listado de vencedores y tiempos histórico (wikipedia).
 
@@ -135,3 +137,58 @@ ggplot(data = vencedores_4, aes(x = ano, y = as.numeric(tiempo), color = tipo)) 
 ```
 
 ##### 1.2 Extracción resultados última década de todos los participantes (pdfs).
+
+Utilizamos la función 'extract_tables' de 'tabulizer' para extraer el contenido de un pdf con los resultados de 2016
+```{r }
+pdf_2016 <- extract_tables("data/resultados_sella_2016.pdf")
+```
+El objeto resultante es una lista en los que cada uno de sus elementos es una página del pdf original
+```{r }
+glimpse(pdf_2016)
+```
+En principio me voy a centrar en los resultados de la categoría masculina de K2. Los resultados de esta categoría están en las dos primeras páginas del pdf, es decir, en los dos primeros elementos de la lista 'pdf_2016'. Extraigo el primer elemento y lo convierto en un data frame para ver cómo ha quedado
+```{r }
+k2_2016_1 <- pdf_2016[[1]]
+k2_2016_1 <- as.data.frame(k2_2016_1)
+```
+Echo un vistazo al data frame resultante
+```{r }
+glimpse(k2_2016_1)
+```
+```{r }
+head(k2_2016_1, 10)
+```
+Las columnas 'No' y 'Name' (número de dorsal de la pareja de participantes y nombres y apellidos de éstos) aparecen unidas en una única variable. Además en algunos de los casos el tiempo recogido en 'Time' también aparece concatenado a los nombres de los participantes. Opto por quedarme únicamente de esta columna con el número del dorsal y los tiempos los compondré con el tiempo del ganador y la diferencia en meta con cada participante (variables 'Time Behind...').
+
+La categoría aparece en el primer registro de la segunda variable. Creo una nueva variable 'cat' con este registro.
+```{r }
+k2_2016_1$cat <- k2_2016_1$V2[[1]]
+```
+
+
+```{r }
+names <- c("pos", "no name", "time", "", "c.pos", "o.pos", "time behind categ.", "time behind winner", "cat")
+colnames(k2_2016_1) <- names
+```
+head(k2_2016_1)
+k2_2016_1[[1]] <- NULL
+View(k2_2016_1)
+
+#### 2.Exploración de datos inicial.
+
+Comenzamos esta exploración inicial de los datos echando un vistazo a los tiempos de los ganadores desde el comienzo de la prueba. 
+
+Ejecutamos de nuevo el gráfico con el que finalizamos la parte de obtención de estos datos.
+
+```{r fig.width = 10}
+vencedores_2$tiempo <- as.duration(vencedores_2$tiempo)
+vencedores_3 <- vencedores_2 %>% filter(tipo != "Excursión")
+vencedores_4 <- vencedores_3 %>% mutate(fecha = paste(ano, "-", "08", "-", "01"))
+vencedores_4$fecha <- ymd(vencedores_4$fecha)
+ggplot(data = vencedores_4, aes(x = ano, y = as.numeric(tiempo), color = tipo)) + geom_line() +
+  labs(title = "Evolución tiempos vencedores K2", y = "Tiempos vencedores K2",  x = "Año") +
+  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5, size = 7)) +
+  scale_x_continuous(breaks = vencedores_4$ano) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  theme(legend.position = c(0.9, 0.8))
+```
